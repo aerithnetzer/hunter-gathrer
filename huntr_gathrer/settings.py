@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 
 
 password = os.getenv("POSTGRES_PASSWORD", None)
+environment = os.getenv("ENVIRONMENT", "local")
 # Application definition
 
 
@@ -81,19 +82,33 @@ WSGI_APPLICATION = "huntr_gathrer.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "HOST": "hunter-gathrer.cz9qbhh8ltke.us-east-1.rds.amazonaws.com",
-        "PORT": "5432",
-        "DATABASE": "postgres",
-        "NAME": "postgres",
-        "USER": "postgres",
-        "PASSWORD": password,
-        "SSLMODE": "verify-full",
-        "SSLROOTCERT": "global-bundle.pem",
+
+if environment.lower() == "prod":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "HOST": "hunter-gathrer.cz9qbhh8ltke.us-east-1.rds.amazonaws.com",
+            "PORT": os.environ.get("DB_PORT", "5432"),
+            "NAME": os.environ.get("DB_NAME", "postgres"),
+            "USER": os.environ.get("DB_USER", "postgres"),
+            "PASSWORD": os.environ.get("DB_PASSWORD"),
+            "OPTIONS": {
+                "sslmode": "verify-full",
+                "sslrootcert": os.environ.get("DB_SSLROOTCERT", "global-bundle.pem"),
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "HOST": "/tmp",
+            "PORT": "5432",
+            "NAME": "postgres",
+            "USER": "postgres",
+            "PASSWORD": "devpassword",
+        }
+    }
 
 
 # Password validation
